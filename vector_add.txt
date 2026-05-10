@@ -1,0 +1,38 @@
+%%writefile vector_add.cu
+#include <stdio.h>
+
+__global__ void add(int *a, int *b, int *c) {
+    int id = threadIdx.x;
+    c[id] = a[id] + b[id];
+}
+
+int main() {
+    int a[5] = {1,2,3,4,5};
+    int b[5] = {5,4,3,2,1};
+    int c[5];
+
+    int *d_a, *d_b, *d_c;
+
+    cudaMalloc(&d_a, 5*sizeof(int));
+    cudaMalloc(&d_b, 5*sizeof(int));
+    cudaMalloc(&d_c, 5*sizeof(int));
+
+    cudaMemcpy(d_a, a, 5*sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_b, b, 5*sizeof(int), cudaMemcpyHostToDevice);
+
+    add<<<1,5>>>(d_a, d_b, d_c);
+
+    cudaMemcpy(c, d_c, 5*sizeof(int), cudaMemcpyDeviceToHost);
+
+    for(int i=0;i<5;i++)
+        printf("%d ", c[i]);
+
+    return 0;
+}
+
+5. Compile
+!nvcc vector_add.cu -o vector_add
+
+6. Run
+!./vector_add
+
